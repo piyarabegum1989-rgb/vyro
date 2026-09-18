@@ -1,0 +1,40 @@
+VYRO CURRENT APP — FEATURE UPDATE
+=================================
+This is an UPDATE for the VYRO repository you already deployed on Vercel.
+It is NOT another new app and it is NOT a static HTML file.
+
+NEW FEATURES
+- Users can attach their own music/audio to posts (upload or audio URL)
+- Music player on a post
+- Owner-only Admin Console: member suspend/restore and post removal
+- Clean Login/Create Account screens with Google, Facebook and phone options
+- Per-post audience + reaction and share backend improvements
+
+HOW TO UPDATE YOUR SAME GITHUB REPOSITORY
+1. Extract this ZIP file.
+2. Open your current GitHub repository: piyarabegum1989-rgb/vyro
+3. Click Add file -> Upload files.
+4. Drag the extracted app, components, and lib folders into the upload box.
+   Drag README.md too if you want the updated guide.
+   Do not drag this ZIP file itself.
+5. GitHub will identify existing same-path files as replacements. Keep them.
+6. At the bottom, click Commit changes directly to main.
+7. Vercel deploys the update automatically (wait 1-3 minutes).
+
+OWNER ADMIN SETUP (IMPORTANT)
+1. Vercel -> VYRO -> Settings -> Environment Variables -> Add New.
+2. Name: ADMIN_EMAIL
+3. Value: the exact email address YOU will use to create/login to VYRO.
+4. Enable Production, Preview and Development -> Save.
+5. Redeploy from Deployments or make a new GitHub commit.
+6. Sign up/log in to VYRO with that exact email. The Admin menu will show.
+
+MUSIC FILE UPLOAD SETUP (OPTIONAL)
+- Music/audio URLs work immediately.
+- For direct MP3/M4A/WAV upload: Vercel -> Storage -> Create -> Blob -> Connect to VYRO.
+  This adds BLOB_READ_WRITE_TOKEN automatically.
+
+GOOGLE / FACEBOOK / PHONE
+The clean buttons are included. Actual provider login needs secure provider configuration:
+Google OAuth Client ID/Secret, Meta App ID/Secret, and an SMS provider for phone OTP.
+Never invent or publish provider/database secrets.

@@ -3,7 +3,11 @@ import { put } from '@vercel/blob';
 import { sessionUser } from '@/lib/auth';
 import { uid } from '@/lib/db';
 
-const TYPES = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', gif: 'image/gif', mp4: 'video/mp4', webm: 'video/webm', mov: 'video/quicktime' };
+const TYPES = {
+  png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', gif: 'image/gif',
+  mp4: 'video/mp4', webm: 'video/webm', mov: 'video/quicktime',
+  mp3: 'audio/mpeg', m4a: 'audio/mp4', wav: 'audio/wav', ogg: 'audio/ogg', aac: 'audio/aac', flac: 'audio/flac',
+};
 
 export async function POST(req) {
   const session = await sessionUser();

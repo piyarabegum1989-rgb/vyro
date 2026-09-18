@@ -61,9 +61,10 @@ export default function PostCard({ post, me, onDeleted }) {
         <span className="time">{p.type === 'reel' ? '🎬 ' : ''}{timeAgo(p.createdAt)}</span>
         {me?.id === p.author?.id && <button onClick={del} title="Delete" style={{ background: 'none', border: 0, fontSize: 16 }}>🗑️</button>}
       </div>
-      {v
+      {p.mediaUrl && (v
         ? <video className="media" src={p.mediaUrl} controls playsInline preload="metadata" />
-        : <img className="media" src={p.mediaUrl} alt="" loading="lazy" />}
+        : <img className="media" src={p.mediaUrl} alt="" loading="lazy" />)}
+      {p.music?.url && <div className="musicpost"><div className="musicnote">♫</div><div><b>{p.music.title || 'Original audio'}</b><span>Original sound · VYRO Music</span></div><audio controls preload="metadata" src={p.music.url} /></div>}
       <div className="pa">
         <button onClick={toggleLike} className={p.liked ? 'liked' : ''}>{p.liked ? '❤️' : '🤍'}</button>
         <button onClick={loadComments}>💬</button>

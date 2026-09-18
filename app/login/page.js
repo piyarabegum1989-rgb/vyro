@@ -3,39 +3,22 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
+function ProviderButtons({ onMessage }) {
+  return <div className="providers"><span>or continue with</span><div><button type="button" onClick={() => onMessage('Google sign-in will be available after Google OAuth is connected.')}>G&nbsp;&nbsp;Continue with Google</button><button type="button" onClick={() => onMessage('Facebook sign-in will be available after Meta OAuth is connected.')}>f&nbsp;&nbsp;Continue with Facebook</button><button type="button" onClick={() => onMessage('Phone sign-in will be available after an SMS provider is connected.')}>⌁&nbsp;&nbsp;Continue with phone</button></div></div>;
+}
+
 export default function Login() {
-  const r = useRouter();
+  const router = useRouter();
   const [email, setEmail] = useState('demo@vyro.app');
-  const [pw, setPw] = useState('password123');
+  const [password, setPassword] = useState('password123');
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
-
   async function go(e) {
-    e.preventDefault();
-    setBusy(true); setErr('');
-    const res = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password: pw }) });
-    const d = await res.json();
-    setBusy(false);
-    if (!res.ok) return setErr(d.error || 'Login failed');
-    r.push('/feed'); r.refresh();
+    e.preventDefault(); setBusy(true); setErr('');
+    const res = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
+    const data = await res.json(); setBusy(false);
+    if (!res.ok) return setErr(data.error || 'Login failed');
+    router.push('/feed'); router.refresh();
   }
-
-  return (
-    <div className="authwrap">
-      <div className="authbox">
-        <span className="logo"><span>vyro</span></span>
-        <p className="center mut" style={{ marginBottom: 20 }}>Connect. Create. Share. ✨</p>
-        <div className="card">
-          <h2 style={{ marginBottom: 14 }}>লগ ইন 🔑</h2>
-          {err && <div className="err">{err}</div>}
-          <form onSubmit={go}>
-            <div className="field"><label>Email</label><input value={email} onChange={e => setEmail(e.target.value)} placeholder="you@mail.com" /></div>
-            <div className="field"><label>Password</label><input type="password" value={pw} onChange={e => setPw(e.target.value)} placeholder="••••••" /></div>
-            <button className="btn" style={{ width: '100%' }} disabled={busy}>{busy ? '...' : 'লগ ইন'}</button>
-          </form>
-          <p className="center mut" style={{ marginTop: 14, fontSize: 14 }}>অ্যাকাউন্ট নেই? <Link href="/signup" style={{ color: '#c4b5fd', fontWeight: 700 }}>সাইন আপ করো</Link></p>
-        </div>
-      </div>
-    </div>
-  );
+  return <main className="authwrap clean"><div className="authbox"><div className="authbrand"><span>V</span><b>VYRO</b><p>Connect. Create. Share.</p></div><section className="card authcard"><h1>Welcome back</h1><p>Log in to your VYRO account.</p>{err && <div className="err">{err}</div>}<form onSubmit={go}><div className="field"><label>Email address</label><input value={email} onChange={e => setEmail(e.target.value)} autoComplete="email" placeholder="you@example.com" /></div><div className="field"><label>Password</label><input type="password" value={password} onChange={e => setPassword(e.target.value)} autoComplete="current-password" placeholder="Your password" /></div><button className="btn" style={{ width: '100%' }} disabled={busy}>{busy ? 'Logging in...' : 'Log in'}</button></form><ProviderButtons onMessage={setErr} /><p className="center mut" style={{ marginTop: 18, fontSize: 14 }}>New to VYRO? <Link href="/signup">Create account</Link></p></section></div></main>;
 }

@@ -30,6 +30,7 @@ export default function Shell({ children }) {
     { h: '/messages', e: '💬', t: 'Messages' },
     { h: '/notifications', e: '🔔', t: 'Notifications', badge: unread },
     { h: `/u/${me.username}`, e: '👤', t: 'Profile' },
+    ...(me.isAdmin ? [{ h: '/admin', e: '🛡️', t: 'Admin' }] : []),
     { h: '/settings', e: '⚙️', t: 'Settings' },
   ];
 

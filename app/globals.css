@@ -103,6 +103,11 @@ input:focus, textarea:focus { border-color: var(--acc); }
 .feat .f p { font-size: 13px; color: var(--mut); }
 .authwrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
 .authbox { width: 100%; max-width: 400px; }
+/* Clean authentication screens */
+.authwrap.clean { background: radial-gradient(circle at 50% -10%, rgba(124,58,237,.22), transparent 45%), var(--bg); }
+.authbrand { text-align: center; margin-bottom: 21px; }.authbrand > span { display: inline-grid; place-items: center; width: 39px; height: 39px; border-radius: 13px; background: linear-gradient(135deg, #7c3aed, #ec4899); font-size: 19px; font-weight: 900; color: #fff; vertical-align: middle; margin-right: 9px; }.authbrand b { font-size: 27px; letter-spacing: -.8px; vertical-align: middle; }.authbrand p { font-size: 13px; color: var(--mut); margin-top: 8px; }
+.authcard { padding: 24px; }.authcard h1 { font-size: 22px; margin-bottom: 5px; }.authcard > p { color: var(--mut); font-size: 14px; margin-bottom: 20px; }.authcard a { color: #c4b5fd; font-weight: 800; }
+.providers { margin-top: 20px; border-top: 1px solid var(--line); padding-top: 17px; }.providers > span { display: block; font-size: 12px; text-align: center; color: var(--mut); margin-bottom: 10px; }.providers > div { display: grid; gap: 8px; }.providers button { width: 100%; border: 1px solid var(--line); border-radius: 10px; background: var(--card2); color: var(--txt); padding: 10px 12px; font-weight: 700; font-size: 13px; text-align: left; }.providers button:hover { border-color: var(--acc); background: #20283a; }
 .authbox .logo { text-align: center; font-size: 40px; margin-bottom: 6px; display: block; }
 .switch { position: relative; width: 52px; height: 28px; flex-shrink: 0; }
 .switch input { opacity: 0; width: 100%; height: 100%; position: absolute; cursor: pointer; z-index: 2; margin: 0; }
@@ -112,10 +117,38 @@ input:focus, textarea:focus { border-color: var(--acc); }
 .switch input:checked + .sw::after { left: 26px; background: #fff; }
 .setrow { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--line); }
 .setrow:last-child { border-bottom: 0; }
+/* Music posts */
+.musicbox { background: var(--card2); border: 1px solid var(--line); border-radius: 12px; padding: 12px; margin: 12px 0; }
+.musicbox > div:first-child { display: flex; flex-direction: column; gap: 3px; margin-bottom: 9px; }
+.musicbox span, .musicbox small { color: var(--mut); font-size: 12px; }
+.musicbox input { margin-top: 8px; }
+.uploadline { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; margin-top: 8px; }
+.filebtn { display: inline-flex !important; width: auto !important; align-items: center; border: 1px solid var(--line); background: var(--card); color: var(--txt) !important; padding: 8px 10px; border-radius: 9px; cursor: pointer; font-size: 12px !important; font-weight: 700 !important; }
+.filebtn:hover { border-color: var(--acc); }
+.musicpost { display: flex; align-items: center; gap: 10px; margin: 0 14px 11px; padding: 10px; border: 1px solid var(--line); background: var(--card2); border-radius: 11px; }
+.musicpost .musicnote { width: 34px; height: 34px; flex-shrink: 0; display: grid; place-items: center; border-radius: 50%; background: linear-gradient(135deg, var(--acc), var(--acc2)); font-size: 19px; font-weight: 800; color: #fff; }
+.musicpost > div:nth-child(2) { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.musicpost b { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.musicpost span { color: var(--mut); font-size: 11px; }
+.musicpost audio { width: min(220px, 42%); height: 32px; }
+@media (max-width: 520px) { .musicpost { align-items: flex-start; flex-wrap: wrap; } .musicpost audio { width: 100%; margin-left: 44px; } }
+
 .menu { position: relative; }
 .menu .dd { position: absolute; right: 0; top: 110%; background: var(--card2); border: 1px solid var(--line); border-radius: 12px; min-width: 170px; overflow: hidden; z-index: 30; }
 .menu .dd button { display: block; width: 100%; text-align: left; background: none; border: 0; color: var(--txt); padding: 11px 14px; font-weight: 600; }
 .menu .dd button:hover { background: var(--card); }
+/* Owner admin console */
+.adminhead { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin: 0 0 18px; }
+.adminhead h2 { margin-bottom: 4px; }
+.adminpill { display: inline-flex; align-items: center; border: 1px solid rgba(168,85,247,.5); color: #e9d5ff; background: rgba(168,85,247,.14); padding: 4px 8px; border-radius: 999px; font-size: 10px; font-weight: 900; letter-spacing: .6px; }
+.admingrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
+.admingrid .card { padding: 14px; display: flex; flex-direction: column; gap: 4px; }
+.admingrid b { font-size: 26px; color: #fff; }.admingrid span { font-size: 12px; color: var(--mut); }
+.adminsection { margin-bottom: 14px; padding: 0; overflow: hidden; }.adminsection h3 { padding: 14px; font-size: 15px; border-bottom: 1px solid var(--line); }
+.adminrow { display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-bottom: 1px solid var(--line); }.adminrow:last-child { border-bottom: 0; }
+.adminrow .grow { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 2px; }.adminrow .grow b { font-size: 13px; }.adminrow .grow span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; color: var(--mut); }
+@media (max-width: 560px) { .admingrid { grid-template-columns: repeat(2, 1fr); } .adminrow { padding: 10px; } }
+
 .center { text-align: center; }
 .lock { text-align: center; padding: 40px 16px; }
 .lock .big { font-size: 56px; }
