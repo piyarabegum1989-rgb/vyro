@@ -1,12 +1,14 @@
 {
   "name": "VYRO — Connect. Create. Share.",
   "short_name": "VYRO",
-  "description": "বাংলাদেশের নিজস্ব social app — posts, reels, messaging, explore.",
-  "start_url": "/",
+  "description": "VYRO social app — connect, create and share.",
+  "start_url": "/vyro-facebook.html",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#0b0b14",
-  "theme_color": "#7c3aed",
+  "background_color": "#0b0e14",
+  "theme_color": "#0b0e14",
   "icons": [
-    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
   ]
 }
