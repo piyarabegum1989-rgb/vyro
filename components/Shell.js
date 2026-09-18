@@ -22,10 +22,12 @@ export default function Shell({ children }) {
       const data = await res.json();
       if (alive) setMe(data.user);
     }).catch(() => router.replace('/login'));
-    fetch('/api/notifications').then(async res => {
+    const loadUnread = () => fetch('/api/notifications').then(async res => {
       if (res.ok && alive) setUnread((await res.json()).unread || 0);
-    });
-    return () => { alive = false; };
+    }).catch(() => {});
+    loadUnread();
+    const timer = setInterval(loadUnread, 4000);
+    return () => { alive = false; clearInterval(timer); };
   }, [path, router]);
 
   function active(href) {

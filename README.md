@@ -10,7 +10,7 @@ A mobile-first **Next.js + Neon Postgres + Vercel Blob** social app. It is a rea
 - Profile with persistent profile photo and cover-photo upload controls
 - Reels
 - Instagram-style direct-message inbox and conversation screen, including image/video messages, unread counts and seen status
-- Full-screen Post / Reel / Story composer, photo/video gallery picker, location, privacy and original-music attachment
+- Full-screen Post / Reel / Story composer, photo/video gallery picker, location, privacy and VIRO Music picker (starter sounds, public creator sounds and original-music upload)
 - Notifications with All, Likes, Comments and Follows tabs
 - Profile drawer: Profile, Messages, Community, Settings & privacy, Logout
 - Community drawer keeps Marketplace (BDT), Circles, Groups and Events discoverable
@@ -54,4 +54,5 @@ Use `npm run build` before deployment.
 
 - Never commit `.env.local`, `DATABASE_URL` or `BLOB_READ_WRITE_TOKEN`.
 - File upload requires Vercel Blob in production. The API returns a clear error if the store is not connected instead of pretending an upload succeeded.
+- VIRO Music starts with three original starter loops and public creator-uploaded sounds. A catalog of commercial TikTok/Instagram songs requires a music-licensing provider; do not add copyrighted songs without rights.
 - The initial Neon adapter preserves the existing JSON collection model in one durable Postgres table. For a very large public launch, migrate to dedicated relational tables, add email verification, rate limiting and a managed realtime provider.
