@@ -1,47 +1,42 @@
-VIRO MOBILE — FUNCTIONAL UPDATE
-================================
+VIRO MOBILE — LIGHT UI + SOCIAL FEATURES UPDATE
+=================================================
 
-Upload the CONTENTS of this folder into the ROOT of the existing GitHub repo:
+Upload the CONTENTS of this folder into the ROOT of the EXISTING GitHub repo:
 https://github.com/piyarabegum1989-rgb/vyro
-Replace matching files, commit to main, and use the SAME Vercel project. Do
-NOT create a new Vercel project.
+Replace matching files, commit to main, and use the SAME connected Vercel
+project. Do NOT create another Vercel project.
 
-REQUIRED PRODUCTION SERVICES
-----------------------------
-1. Vercel Project -> Settings -> Environment Variables:
-   DATABASE_URL = your Neon Postgres pooled connection URL
-   ADMIN_EMAIL = your own VIRO account email (only this account gets Admin)
+NEW IN THIS UPDATE
+------------------
+- The mobile social UI now uses a clean white/light background.
+- The VIRO V logo is centred on a white PWA/home-screen app icon.
+- Tap Followers or Following on a profile to see the actual list of names and
+  avatars, like TikTok/Facebook/Instagram.
+- Notification page refreshes every 4 seconds. Public follows go to the
+  Follows tab. A private account receives a follow REQUEST to accept.
+- Messages list refreshes every 3.5 seconds. New messages arrive to the other
+  account with unread count, last-message/time and seen status.
+- Create -> Add music opens a music picker. It has three original VIRO loops
+  (Neon Wave, Night Drive, Sylhet Sun) and public creator-uploaded sounds.
 
-2. Vercel Project -> Storage -> Create -> Blob -> Connect to this project.
-   This automatically provides BLOB_READ_WRITE_TOKEN.
+REQUIRED FOR SHARED PRODUCTION DATA
+-----------------------------------
+Vercel Project -> Settings -> Environment Variables:
+DATABASE_URL = your Neon pooled Postgres URL
+ADMIN_EMAIL = your own VIRO account email
 
-Save env values for Production, Preview and Development, then redeploy.
-Never share or commit the actual token/connection URL.
+Vercel Project -> Storage -> Create -> Blob -> connect it to this same project.
+That creates BLOB_READ_WRITE_TOKEN. Set it for Production, Preview and
+Development and redeploy.
 
-WHAT THIS UPDATE FIXES
-----------------------
-- Notification page now refreshes every 4 seconds. Public follows appear under
-  Follows; follow requests appear only when the target profile is Private,
-  exactly like Instagram.
-- Messages inbox refreshes every 3.5 seconds. New messages are visible to the
-  other account, with last message, time, unread count and seen status.
-- Create post, reel and story works with a caption alone or device media.
-  Device media requires the Blob store above for durable shared storage.
-- Add music now opens a TikTok-style VIRO Music picker. It includes three
-  original VIRO starter loops plus every public original sound uploaded by
-  creators. The picker lets a person select a sound for a post/reel/story.
-- Profile/cover, post/reel, chat-media and original-audio uploads go directly
-  to Vercel Blob with temporary authenticated tokens (up to 100MB).
+Without Neon, separate accounts cannot share durable follows/messages/posts.
+Without Blob, device gallery media cannot be permanently shared. Arena preview
+has neither private credential by design; this is why it shows the upload
+connection message. Do not send these secret values in chat or commit them.
 
 MUSIC RIGHTS
 ------------
-The UI is TikTok-style, but no app may legally ship arbitrary commercial
-TikTok/Instagram songs without commercial music licenses. Add licensed music
-provider credentials later to expand the library; creators can immediately
-use the included original loops or their own music they have rights to share.
-
-WHY THE ARENA PREVIEW SHOWS A BLOB ERROR
-----------------------------------------
-The Arena preview intentionally has no DATABASE_URL or BLOB_READ_WRITE_TOKEN,
-so it cannot connect to your private Neon/Vercel services. In your existing
-Vercel project, adding the two services above enables shared production data.
+VIRO Music works like TikTok's select-sound flow, but commercial TikTok songs
+cannot legally be shipped without a commercial music licence. Users can use
+VIRO starter sounds and their own/public creator sounds now; later connect a
+licensed catalog provider for commercial tracks.
