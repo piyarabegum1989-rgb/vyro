@@ -1,0 +1,34 @@
+VYRO FACEBOOK-CLASS — MUSIC + MOBILE INSTALL UPDATE
+=====================================================
+
+Use this only after the Facebook-class Marketplace/Circles VYRO is already live.
+
+WHAT IS ADDED
+- Add Music option in the Create Post window
+- Users can select an original audio file (MP3, M4A, WAV, OGG; up to 8 MB)
+- Audio player displays under the new post
+- Install VYRO app button in the interface
+- PWA manifest, service worker, and Android/iPhone app icons
+
+UPDATE THE SAME GITHUB REPOSITORY
+1. Extract this ZIP file.
+2. Open: github.com/piyarabegum1989-rgb/vyro
+3. Add file -> Upload files.
+4. Drag the extracted PUBLIC folder into the upload page.
+   It replaces public/vyro-facebook.html and adds public/sw.js, the manifest,
+   and public/icons/icon-192.png + icon-512.png.
+5. Click Commit changes directly to main.
+6. Wait 1-3 minutes for Vercel to redeploy.
+7. Refresh your VYRO Vercel link once (required for the service worker).
+
+INSTALL ON A PHONE
+- Android Chrome: open the VYRO link -> tap the phone Install VYRO icon in the
+  app OR Chrome's three-dot menu -> Install app / Add to Home screen.
+- iPhone Safari: Share button -> Add to Home Screen -> Add.
+- Windows Edge/Chrome: use the install icon at the right of the address bar,
+  or the browser three-dot menu -> Apps -> Install VYRO.
+
+IMPORTANT: This exact Facebook-class VYRO is a browser-based interactive demo.
+Music selected from a phone/file plays in the current browser session. It is
+not uploaded into Neon/shared for other people yet. Shared user music requires
+the next full-stack conversion plus Vercel Blob/another media storage service.
