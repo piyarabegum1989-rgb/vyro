@@ -1,129 +1,25 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Shell from '@/components/Shell';
+import Icon from '@/components/Icons';
 import { Avatar } from '@/components/ui';
+import { uploadFromDevice } from '@/lib/client-upload';
 
 export default function Profile({ params }) {
-  const r = useRouter();
-  const [d, setD] = useState(null);
-  const [tab, setTab] = useState('post');
-  const [menu, setMenu] = useState(false);
-  const [edit, setEdit] = useState(false);
-  const [f, setF] = useState({ name: '', bio: '' });
-  const [busy, setBusy] = useState(false);
-
-  const load = () => fetch(`/api/users/${params.username}`).then(async res => setD({ status: res.status, ...(await res.json()) }));
-  useEffect(() => { load(); }, [params.username]);
-
-  async function follow() {
-    setBusy(true);
-    const isF = d.followStatus === 'accepted' || d.followStatus === 'pending';
-    const res = await fetch(`/api/users/${params.username}/follow`, { method: isF ? 'DELETE' : 'POST' });
-    const j = await res.json();
-    setBusy(false);
-    if (res.ok) { setD({ ...d, followStatus: j.status }); load(); }
-  }
-  async function block() {
-    if (!confirm(d.isBlockedByMe ? 'Unblock করবে?' : 'Block করবে? তারা তোমার প্রোফাইল দেখতে পাবে না।')) return;
-    await fetch(`/api/users/${params.username}/block`, { method: d.isBlockedByMe ? 'DELETE' : 'POST' });
-    setMenu(false); load();
-  }
-  async function message() {
-    const res = await fetch('/api/conversations', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: params.username }) });
-    const j = await res.json();
-    if (res.ok) r.push('/messages');
-    else alert(j.error || 'মেসেজ শুরু করা যায়নি');
-  }
-  async function saveEdit(e) {
-    e.preventDefault();
-    const res = await fetch('/api/users/me', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(f) });
-    if (res.ok) { setEdit(false); load(); }
-  }
-
-  if (!d) return <Shell><div className="spin">লোড হচ্ছে...</div></Shell>;
-  if (d.status === 404) return <Shell><div className="card center" style={{ marginTop: 40 }}><div style={{ fontSize: 48 }}>🚫</div><h2>Not found</h2><p className="mut">এই প্রোফাইল পাওয়া যায়নি বা block করা হয়েছে।</p></div></Shell>;
-
-  const u = d.user;
-  const posts = (d.posts || []).filter(p => p.type === tab);
-
-  return (
-    <Shell>
-      <div className="card">
-        <div className="row" style={{ alignItems: 'center' }}>
-          <Avatar user={u} size={76} />
-          <div style={{ flex: 1 }}>
-            <h2 style={{ display: 'flex', alignItems: 'center', gap: 8 }}>@{u.username} {u.isPrivate && <span title="Private">🔒</span>}</h2>
-            <div className="mut">{u.name}</div>
-          </div>
-          {!d.isOwn && (
-            <div className="menu">
-              <button className="btn ghost sm" onClick={() => setMenu(!menu)}>⋯</button>
-              {menu && <div className="dd">
-                <button onClick={message}>💬 Message</button>
-                <button onClick={block} style={{ color: d.isBlockedByMe ? '#86efac' : '#fca5a5' }}>{d.isBlockedByMe ? '✅ Unblock' : '🚫 Block'}</button>
-              </div>}
-            </div>
-          )}
-        </div>
-        {u.bio && <p style={{ marginTop: 10 }}>{u.bio}</p>}
-        <div className="row center" style={{ marginTop: 14 }}>
-          <div style={{ flex: 1 }}><b>{u.stats.posts}</b><div className="mut" style={{ fontSize: 12 }}>Posts</div></div>
-          <div style={{ flex: 1 }}><b>{u.stats.followers}</b><div className="mut" style={{ fontSize: 12 }}>Followers</div></div>
-          <div style={{ flex: 1 }}><b>{u.stats.following}</b><div className="mut" style={{ fontSize: 12 }}>Following</div></div>
-        </div>
-        <div className="row" style={{ marginTop: 14 }}>
-          {d.isOwn ? <>
-            <button className="btn ghost sm" style={{ flex: 1 }} onClick={() => { setF({ name: u.name, bio: u.bio }); setEdit(true); }}>✏️ Edit profile</button>
-            <Link href="/settings" className="btn ghost sm" style={{ flex: 1 }}>⚙️ Settings</Link>
-          </> : <>
-            <button className="btn sm" style={{ flex: 1 }} onClick={follow} disabled={busy}>
-              {d.followStatus === 'accepted' ? '✓ Following' : d.followStatus === 'pending' ? '⏳ Requested' : '＋ Follow'}
-            </button>
-            <button className="btn ghost sm" style={{ flex: 1 }} onClick={message}>💬 Message</button>
-          </>}
-        </div>
-      </div>
-
-      {!d.canView ? (
-        <div className="lock">
-          <div className="big">🔒</div>
-          <h3>This account is private</h3>
-          <p className="mut">পোস্ট দেখতে ফলো করো — owner approve করলে দেখা যাবে।</p>
-        </div>
-      ) : <>
-        <div className="tabs">
-          <button className={tab === 'post' ? 'on' : ''} onClick={() => setTab('post')}>📸 Posts</button>
-          <button className={tab === 'reel' ? 'on' : ''} onClick={() => setTab('reel')}>🎬 Reels</button>
-        </div>
-        {posts.length === 0 ? <div className="card center mut">কিছু নেই</div> : (
-          <div className="grid3">
-            {posts.map(p => (
-              <div key={p.id} className="cell" title={(p.caption || '').slice(0, 80)}>
-                {p.type === 'reel' ? <video src={p.mediaUrl} preload="metadata" /> : <img src={p.mediaUrl} alt="" loading="lazy" />}
-                {p.type === 'reel' && <span className="rtype">🎬</span>}
-              </div>
-            ))}
-          </div>
-        )}
-      </>}
-
-      {edit && (
-        <div className="overlay" onClick={() => setEdit(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
-            <h2>✏️ Edit profile</h2>
-            <form onSubmit={saveEdit}>
-              <div className="field"><label>Name</label><input value={f.name} onChange={e => setF({ ...f, name: e.target.value })} /></div>
-              <div className="field"><label>Bio</label><textarea rows={3} value={f.bio} onChange={e => setF({ ...f, bio: e.target.value })} /></div>
-              <div className="row">
-                <button type="button" className="btn ghost" style={{ flex: 1 }} onClick={() => setEdit(false)}>বাতিল</button>
-                <button className="btn" style={{ flex: 1 }}>সেভ করো</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-    </Shell>
-  );
+  const router=useRouter(); const [d,setD]=useState(null); const [tab,setTab]=useState('post'); const [menu,setMenu]=useState(false); const [edit,setEdit]=useState(false); const [f,setF]=useState({name:'',bio:'',avatarUrl:'',coverUrl:''}); const [busy,setBusy]=useState(false); const [err,setErr]=useState(''); const avatarFile=useRef(null); const coverFile=useRef(null);
+  const load=()=>fetch(`/api/users/${params.username}`).then(async r=>setD({status:r.status,...(await r.json())}));
+  useEffect(()=>{load();},[params.username]);
+  async function follow(){setBusy(true);const on=d.followStatus==='accepted'||d.followStatus==='pending';const res=await fetch(`/api/users/${params.username}/follow`,{method:on?'DELETE':'POST'});const j=await res.json();setBusy(false);if(res.ok){setD({...d,followStatus:j.status});load();}}
+  async function message(){const r=await fetch('/api/conversations',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:params.username})});const j=await r.json();if(r.ok)router.push(`/messages?c=${j.conversation.id}`);else alert(j.error||'Could not start this conversation.');}
+  async function block(){if(!confirm(d.isBlockedByMe?'Unblock this account?':'Block this account?'))return;await fetch(`/api/users/${params.username}/block`,{method:d.isBlockedByMe?'DELETE':'POST'});setMenu(false);load();}
+  async function upload(file,key){if(!file)return;setBusy(true);setErr('');try{const url=await uploadFromDevice(file);setF(old=>({...old,[key]:url}));}catch(error){setErr(error?.message||'Upload failed.')}finally{setBusy(false);}}
+  async function saveEdit(e){e.preventDefault();setBusy(true);setErr('');const r=await fetch('/api/users/me',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(f)});setBusy(false);if(!r.ok)return setErr((await r.json()).error||'Could not save profile.');setEdit(false);load();}
+  if(!d)return <Shell><div className="app-loading" style={{minHeight:250,background:'transparent'}}><span>Loading profile</span></div></Shell>;
+  if(d.status===404)return <Shell><div className="card center" style={{marginTop:32}}><h2>Profile unavailable</h2><p className="mut">This user was not found or is unavailable.</p></div></Shell>;
+  const u=d.user;const posts=(d.posts||[]).filter(p=>tab==='reel'?p.type==='reel':p.type!=='reel');
+  return <Shell><section className="profile-cover" style={u.coverUrl?{backgroundImage:`url(${u.coverUrl})`}:undefined}/><section className="profile-main"><div className="profile-avatar-wrap"><Avatar user={u} size={75}/>{d.isOwn&&<button className="profile-avatar-add" onClick={()=>{setF({name:u.name||'',bio:u.bio||'',avatarUrl:u.avatarUrl||'',coverUrl:u.coverUrl||''});setEdit(true);}}>+</button>}</div><div className="profile-ident"><h1>{u.name}</h1><div className="handle">@{u.username}</div>{u.bio&&<p>{u.bio}</p>}</div><div className="profile-stats"><div><b>{u.stats.posts}</b>Posts</div><div><b>{u.stats.followers}</b>Followers</div><div><b>{u.stats.following}</b>Following</div></div><div className="profile-actions">{d.isOwn?<><button className="btn ghost sm" onClick={()=>{setF({name:u.name||'',bio:u.bio||'',avatarUrl:u.avatarUrl||'',coverUrl:u.coverUrl||''});setEdit(true);}}><Icon name="edit" size={15}/> Edit profile</button><Link className="btn ghost sm" href="/settings"><Icon name="settings" size={15}/> Settings</Link></>:<><button className="btn sm" onClick={follow} disabled={busy}>{d.followStatus==='accepted'?'Following':d.followStatus==='pending'?'Requested':'Follow'}</button><button className="btn ghost sm" onClick={message}><Icon name="message" size={15}/> Message</button><div style={{position:'relative'}}><button className="btn ghost sm" onClick={()=>setMenu(!menu)}><Icon name="dots" size={16}/></button>{menu&&<div className="profile-popover"><button onClick={block}>{d.isBlockedByMe?'Unblock':'Block'}</button></div>}</div></>}</div></section>
+  {!d.canView?<div className="card center" style={{marginTop:25}}><Icon name="shield" size={34}/><h3>Private account</h3><p className="mut">Follow this account to see its posts.</p></div>:<><div className="profile-tabs"><button className={tab==='post'?'on':''} onClick={()=>setTab('post')}><Icon name="grid" size={20}/></button><button className={tab==='reel'?'on':''} onClick={()=>setTab('reel')}><Icon name="reels" size={20}/></button></div>{posts.length===0?<div className="card center mut" style={{marginTop:16}}>No {tab==='reel'?'reels':'posts'} yet.</div>:<div className="grid3">{posts.map(p=><div className="cell" key={p.id}>{p.type==='reel'?<video src={p.mediaUrl} preload="metadata"/>:<img src={p.mediaUrl} alt={p.caption||''}/>} {p.type==='reel'&&<span className="rtype"><Icon name="play" size={15}/></span>}</div>)}</div>}</>}
+  {edit&&<div className="overlay" onClick={()=>setEdit(false)}><section className="modal" onClick={e=>e.stopPropagation()}><div style={{display:'flex',alignItems:'center',justifyContent:'space-between',borderBottom:'1px solid rgba(151,174,206,.14)',paddingBottom:10,marginBottom:13}}><button type="button" onClick={()=>setEdit(false)} style={{border:0,background:'none',color:'#fff',padding:2}}><Icon name="x"/></button><h2 style={{margin:0}}>Edit profile</h2><span style={{width:24}}/></div>{err&&<div className="err">{err}</div>}<form onSubmit={saveEdit}><div className="media-pickers"><div className="picker-preview">{f.avatarUrl&&<img src={f.avatarUrl} alt="Profile preview"/>}<label>{busy?'Uploading…':'Profile photo'}<input ref={avatarFile} type="file" accept="image/*" onChange={e=>upload(e.target.files?.[0],'avatarUrl')} disabled={busy}/></label></div><div className="picker-preview cover-preview">{f.coverUrl&&<img src={f.coverUrl} alt="Cover preview"/>}<label>{busy?'Uploading…':'Cover photo'}<input ref={coverFile} type="file" accept="image/*" onChange={e=>upload(e.target.files?.[0],'coverUrl')} disabled={busy}/></label></div></div><div className="field" style={{marginTop:14}}><label>Name</label><input value={f.name} onChange={e=>setF({...f,name:e.target.value})}/></div><div className="field"><label>Bio</label><textarea rows="3" value={f.bio} onChange={e=>setF({...f,bio:e.target.value})} placeholder="Tell people about yourself"/></div><button className="btn" style={{width:'100%'}} disabled={busy}>{busy?'Saving…':'Save profile'}</button></form></section></div>}</Shell>;
 }

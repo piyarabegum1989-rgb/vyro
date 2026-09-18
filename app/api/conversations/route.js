@@ -11,7 +11,8 @@ export async function GET() {
     const peerId = conversation.members.find(member => member !== session.user.id);
     const peer = users.find(user => user.id === peerId);
     const last = messages.filter(message => message.convoId === conversation.id).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0] || null;
-    return { id: conversation.id, peer: publicUser(peer), last, blocked: await blockedEither(session.user.id, peerId) };
+    const unread = messages.filter(message => message.convoId === conversation.id && message.senderId !== session.user.id && !message.readAt).length;
+    return { id: conversation.id, peer: publicUser(peer), last, unread, blocked: await blockedEither(session.user.id, peerId) };
   }))).filter(conversation => conversation.peer);
   return NextResponse.json({ conversations });
 }

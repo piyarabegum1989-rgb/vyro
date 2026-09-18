@@ -1,66 +1,99 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter, usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import CreateModal from './CreateModal';
+import Icon from './Icons';
+import { Avatar, ViroMark } from './ui';
 
 export default function Shell({ children }) {
-  const r = useRouter();
+  const router = useRouter();
   const path = usePathname();
   const [me, setMe] = useState(null);
   const [unread, setUnread] = useState(0);
   const [showCreate, setShowCreate] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [showExtras, setShowExtras] = useState(false);
 
   useEffect(() => {
+    let alive = true;
     fetch('/api/auth/me').then(async res => {
-      if (!res.ok) { r.push('/'); return; }
-      setMe((await res.json()).user);
-    });
+      if (!res.ok) { router.replace('/login'); return; }
+      const data = await res.json();
+      if (alive) setMe(data.user);
+    }).catch(() => router.replace('/login'));
     fetch('/api/notifications').then(async res => {
-      if (res.ok) setUnread((await res.json()).unread || 0);
+      if (res.ok && alive) setUnread((await res.json()).unread || 0);
     });
-  }, [path]);
+    return () => { alive = false; };
+  }, [path, router]);
 
-  if (!me) return <div className="spin">লোড হচ্ছে... ✨</div>;
+  function active(href) {
+    if (href === '/feed') return path === '/feed';
+    if (href === '/profile') return path.startsWith('/u/');
+    return path.startsWith(href);
+  }
 
-  const NAV = [
-    { h: '/feed', e: '🏠', t: 'Feed' },
-    { h: '/explore', e: '🔎', t: 'Explore' },
-    { h: '/reels', e: '🎬', t: 'Reels' },
-    { h: '/messages', e: '💬', t: 'Messages' },
-    { h: '/notifications', e: '🔔', t: 'Notifications', badge: unread },
-    { h: `/u/${me.username}`, e: '👤', t: 'Profile' },
-    ...(me.isAdmin ? [{ h: '/admin', e: '🛡️', t: 'Admin' }] : []),
-    { h: '/settings', e: '⚙️', t: 'Settings' },
-  ];
+  async function logout() {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    router.replace('/login');
+    router.refresh();
+  }
 
-  return (
-    <div className="shell">
-      <aside className="side">
-        <Link href="/feed" className="logo"><span>vyro</span></Link>
-        {NAV.slice(0, 3).map(n => (
-          <Link key={n.h} href={n.h} className={'navlink' + (path === n.h ? ' on' : '')}>{n.e} {n.t}</Link>
-        ))}
-        <button className="navlink" style={{ background: 'none', border: 0, color: 'inherit', fontSize: 16, width: '100%', textAlign: 'left' }} onClick={() => setShowCreate(true)}>➕ Create</button>
-        {NAV.slice(3).map(n => (
-          <Link key={n.h} href={n.h} className={'navlink' + (path.startsWith(n.h.split('?')[0]) && (n.h !== '/feed') ? ' on' : '')}>
-            {n.e} {n.t}{n.badge > 0 && <span className="dot">{n.badge}</span>}
-          </Link>
-        ))}
-        <div style={{ marginTop: 'auto', padding: 12, fontSize: 13 }} className="mut">@{me.username}</div>
+  if (!me) return <div className="app-loading"><ViroMark size={48} word={false} /><span>Loading VIRO</span></div>;
+
+  const isProfile = path.startsWith('/u/');
+  return <div className="mobile-app">
+    <header className="app-topbar">
+      {isProfile ? <Link href={`/u/${me.username}`} className="profile-topname">{path === `/u/${me.username}` ? me.username : 'profile'} <Icon name="chevronDown" size={15} /></Link> : <Link href="/feed" aria-label="VIRO home"><ViroMark size={33} /></Link>}
+      <div className="top-actions">
+        {isProfile ? <><button className="icon-button" onClick={() => setShowCreate(true)} aria-label="Create"><Icon name="plusSquare" /></button><button className="icon-button" onClick={() => setShowMenu(true)} aria-label="Menu"><Icon name="menu" /></button></> : <>
+          <Link href="/explore" className="icon-button" aria-label="Search"><Icon name="search" /></Link>
+          <Link href="/notifications" className="icon-button bell-button" aria-label="Notifications"><Icon name="bell" />{unread > 0 && <i>{unread > 9 ? '9+' : unread}</i>}</Link>
+          <button className="top-avatar" onClick={() => setShowMenu(true)} aria-label="Profile menu"><Avatar user={me} size={29} /></button>
+        </>}
+      </div>
+    </header>
+
+    <main className="app-content">{children}</main>
+
+    <nav className="viro-bottomnav" aria-label="Main navigation">
+      <Link href="/feed" className={active('/feed') ? 'active' : ''} aria-label="Home"><Icon name="home" /></Link>
+      <Link href="/explore" className={active('/explore') ? 'active' : ''} aria-label="Explore"><Icon name="search" /></Link>
+      <button className="create-nav" onClick={() => setShowCreate(true)} aria-label="Create post"><Icon name="plusSquare" size={27} /></button>
+      <Link href="/reels" className={active('/reels') ? 'active' : ''} aria-label="Reels"><Icon name="reels" /></Link>
+      <Link href={`/u/${me.username}`} className={active('/profile') ? 'active' : ''} aria-label="Profile"><Avatar user={me} size={24} /></Link>
+    </nav>
+
+    {showMenu && <div className="sheet-backdrop" onClick={() => setShowMenu(false)}>
+      <aside className="profile-sheet" onClick={e => e.stopPropagation()}>
+        <div className="sheet-handle" />
+        <button className="sheet-close" onClick={() => setShowMenu(false)} aria-label="Close"><Icon name="x" /></button>
+        <Link href={`/u/${me.username}`} className="sheet-user" onClick={() => setShowMenu(false)}><Avatar user={me} size={48} /><div><b>{me.name}</b><span>@{me.username}</span></div></Link>
+        <div className="sheet-rule" />
+        <Link href={`/u/${me.username}`} onClick={() => setShowMenu(false)}><Icon name="user" /> Profile</Link>
+        <Link href="/messages" onClick={() => setShowMenu(false)}><Icon name="message" /> Messages</Link>
+        <button onClick={() => { setShowMenu(false); setShowExtras(true); }}><Icon name="grid" /> Community</button>
+        <button onClick={() => { setShowMenu(false); router.push('/settings'); }}><Icon name="settings" /> Settings & privacy</button>
+        {me.isAdmin && <Link href="/admin" onClick={() => setShowMenu(false)} className="admin-link"><Icon name="shield" /> Admin console</Link>}
+        <button className="logout-sheet" onClick={logout}><Icon name="logout" /> Log out</button>
+        <div className="sheet-brand"><ViroMark size={34} /><span>Connect &nbsp;·&nbsp; Share &nbsp;·&nbsp; Be Real</span></div>
       </aside>
-      <div className="topbar"><Link href="/feed" className="logo" style={{ fontSize: 24 }}><span>vyro</span></Link></div>
-      <main className="main">{children}</main>
-      <nav className="bottomnav"><div className="row">
-        <Link href="/feed">🏠</Link>
-        <Link href="/explore">🔎</Link>
-        <button className="bn" onClick={() => setShowCreate(true)}>➕</button>
-        <Link href="/reels">🎬</Link>
-        <Link href="/messages">💬</Link>
-        <Link href="/notifications" style={{ position: 'relative' }}>🔔{unread > 0 && <span className="dot" style={{ position: 'absolute', top: 2, right: 2, background: '#ec4899', color: '#fff', fontSize: 10, fontWeight: 800, minWidth: 18, height: 18, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{unread}</span>}</Link>
-        <Link href={`/u/${me.username}`}>👤</Link>
-      </div></nav>
-      {showCreate && <CreateModal onClose={() => setShowCreate(false)} onDone={() => { setShowCreate(false); r.push('/feed'); r.refresh(); window.location.reload(); }} />}
-    </div>
-  );
+    </div>}
+
+    {showExtras && <div className="sheet-backdrop" onClick={() => setShowExtras(false)}>
+      <aside className="profile-sheet feature-sheet" onClick={e => e.stopPropagation()}>
+        <div className="sheet-handle" /><button className="sheet-close" onClick={() => setShowExtras(false)}><Icon name="x" /></button>
+        <h2>Community</h2><p>More ways to connect on VIRO.</p>
+        <div className="feature-links">
+          <button><span className="feature-icon market">৳</span><span><b>Marketplace</b><small>Buy and sell in BDT</small></span></button>
+          <button><span className="feature-icon circle">◌</span><span><b>Circles</b><small>Find your people and vibe</small></span></button>
+          <button><span className="feature-icon groups">◎</span><span><b>Groups</b><small>Communities that matter</small></span></button>
+          <button><span className="feature-icon event">◇</span><span><b>Events</b><small>Discover what is happening</small></span></button>
+        </div>
+      </aside>
+    </div>}
+
+    {showCreate && <CreateModal onClose={() => setShowCreate(false)} onDone={() => { setShowCreate(false); router.push('/feed'); router.refresh(); }} />}
+  </div>;
 }

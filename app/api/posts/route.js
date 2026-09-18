@@ -10,7 +10,7 @@ function canSeeAudience(post, me, follows) {
   if (!me) return false;
   if (post.userId === me.id) return true;
   if (audience === 'onlyme') return false;
-  // VYRO Friends: either accepted direction is enough for the current follow model.
+  // VIRO Friends: either accepted direction is enough for the current follow model.
   return follows.some(item => item.status === 'accepted' &&
     ((item.followerId === me.id && item.followingId === post.userId) ||
      (item.followerId === post.userId && item.followingId === me.id)));
@@ -54,7 +54,7 @@ export async function POST(req) {
   if (!safeMedia && !safeCaption.trim() && !safeMusic) return NextResponse.json({ error: 'কিছু লিখো, ছবি/ভিডিও বা music দাও' }, { status: 400 });
   const post = {
     id: uid('p'), userId: session.user.id,
-    type: safeMedia ? (type === 'reel' ? 'reel' : 'post') : 'text',
+    type: safeMedia ? (type === 'reel' ? 'reel' : type === 'story' ? 'story' : 'post') : 'text',
     mediaUrl: safeMedia, music: safeMusic, caption: safeCaption, location: String(location || '').slice(0, 80),
     audience: audienceAllowed.has(audience) ? audience : 'public', hashtags: extractTags(safeCaption),
     createdAt: new Date().toISOString(),

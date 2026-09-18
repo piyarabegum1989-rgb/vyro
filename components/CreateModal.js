@@ -1,83 +1,22 @@
 'use client';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import Icon from './Icons';
+import { uploadFromDevice } from '@/lib/client-upload';
 
 export default function CreateModal({ onClose, onDone }) {
-  const [type, setType] = useState('post');
-  const [mediaUrl, setMediaUrl] = useState('');
-  const [caption, setCaption] = useState('');
-  const [location, setLocation] = useState('');
-  const [audience, setAudience] = useState('public');
-  const [musicUrl, setMusicUrl] = useState('');
-  const [musicTitle, setMusicTitle] = useState('');
-  const [err, setErr] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [ai, setAi] = useState(null);
-  const [aiBusy, setAiBusy] = useState(false);
-  const [uploading, setUploading] = useState('');
-
-  async function upload(file, kind) {
-    if (!file) return;
-    setUploading(kind); setErr('');
-    const form = new FormData();
-    form.append('file', file);
-    const res = await fetch('/api/upload', { method: 'POST', body: form });
-    const data = await res.json();
-    setUploading('');
-    if (!res.ok) return setErr(data.error || 'Upload failed');
-    if (kind === 'music') {
-      setMusicUrl(data.url);
-      setMusicTitle(file.name.replace(/\.[^.]+$/, ''));
-    } else {
-      setMediaUrl(data.url);
-      if (file.type.startsWith('video')) setType('reel');
-    }
-  }
-
-  async function assist() {
-    setAiBusy(true);
-    const res = await fetch('/api/ai/hashtags', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ caption, location }) });
-    const data = await res.json();
-    setAiBusy(false); setAi(data.suggestions || []);
-  }
-
-  function autoAdd() {
-    if (!ai?.length) return;
-    const fresh = ai.filter(tag => !caption.includes(tag));
-    setCaption(value => (value ? value.trimEnd() + ' ' : '') + fresh.join(' '));
-  }
-
-  async function submit(e) {
-    e.preventDefault();
-    setBusy(true); setErr('');
-    const res = await fetch('/api/posts', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type, mediaUrl, caption, location, audience, music: musicUrl ? { url: musicUrl, title: musicTitle || 'Original audio' } : null }),
-    });
-    const data = await res.json();
-    setBusy(false);
-    if (!res.ok) return setErr(data.error || 'Post failed');
-    onDone && onDone(data.post);
-  }
-
-  const video = type === 'reel' || /\.(mp4|webm|mov)(\?|$)/i.test(mediaUrl) || mediaUrl.includes('gtv-videos');
-  return (
-    <div className="overlay" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
-        <h2>Create a post</h2>
-        <p className="mut" style={{ fontSize: 13, margin: '3px 0 16px' }}>Share a thought, photo, video or your original music.</p>
-        {err && <div className="err">{err}</div>}
-        <form onSubmit={submit}>
-          <div className="field"><label>Post type</label><div className="seg"><button type="button" className={type === 'post' ? 'on' : ''} onClick={() => setType('post')}>Post</button><button type="button" className={type === 'reel' ? 'on' : ''} onClick={() => setType('reel')}>Reel</button></div></div>
-          <div className="field"><label>Who can see this?</label><select value={audience} onChange={e => setAudience(e.target.value)}><option value="public">Public</option><option value="friends">Friends</option><option value="onlyme">Only me</option></select></div>
-          <div className="field"><label>Photo or video (optional)</label><input value={mediaUrl} onChange={e => setMediaUrl(e.target.value)} placeholder="Paste a photo/video URL" /><div className="uploadline"><label className="filebtn">{uploading === 'media' ? 'Uploading...' : 'Upload photo/video'}<input type="file" hidden accept="image/*,video/*" onChange={e => upload(e.target.files?.[0], 'media')} disabled={Boolean(uploading)} /></label></div></div>
-          {mediaUrl && <div className="field">{video ? <video src={mediaUrl} controls style={{ width: '100%', maxHeight: 220, borderRadius: 10, background: '#000' }} /> : <img src={mediaUrl} alt="" style={{ width: '100%', maxHeight: 220, objectFit: 'cover', borderRadius: 10 }} />}</div>}
-          <div className="musicbox"><div><b>Music on this post</b><span>Upload your own audio or paste an audio URL.</span></div><input value={musicTitle} onChange={e => setMusicTitle(e.target.value)} placeholder="Song title" /><input value={musicUrl} onChange={e => setMusicUrl(e.target.value)} placeholder="Audio URL (MP3/M4A/WAV)" /><div className="uploadline"><label className="filebtn">{uploading === 'music' ? 'Uploading music...' : 'Upload original music'}<input type="file" hidden accept="audio/mpeg,audio/mp4,audio/wav,audio/ogg,audio/aac,audio/flac,audio/*" onChange={e => upload(e.target.files?.[0], 'music')} disabled={Boolean(uploading)} /></label><small>Only audio you own or can share.</small></div>{musicUrl && <audio controls src={musicUrl} style={{ width: '100%', marginTop: 8 }} />}</div>
-          <div className="field"><label>Caption</label><textarea rows={3} value={caption} onChange={e => setCaption(e.target.value)} placeholder="What is on your mind?" /></div>
-          <div className="field"><label>Location (optional)</label><input value={location} onChange={e => setLocation(e.target.value)} placeholder="Dhaka, Bangladesh" /></div>
-          <div className="field"><button type="button" className="btn ghost sm" onClick={assist} disabled={aiBusy} style={{ width: '100%' }}>{aiBusy ? 'Finding ideas...' : 'AI hashtag assist'} <span className="badge beta">Beta</span></button>{ai && <div style={{ marginTop: 8 }}><div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>{ai.map(tag => <span key={tag} className="chip" onClick={() => setCaption(value => value + (value.endsWith(' ') || !value ? '' : ' ') + tag + ' ')}>{tag}</span>)}</div><button type="button" className="btn sm" style={{ marginTop: 8 }} onClick={autoAdd}>Add all</button></div>}</div>
-          <div className="row"><button type="button" className="btn ghost" style={{ flex: 1 }} onClick={onClose}>Cancel</button><button className="btn" style={{ flex: 2 }} disabled={busy || Boolean(uploading) || (!mediaUrl && !caption.trim() && !musicUrl)}>{busy ? 'Publishing...' : 'Post to VYRO'}</button></div>
-        </form>
-      </div>
-    </div>
-  );
+  const [type,setType]=useState('post'); const [mediaUrl,setMediaUrl]=useState(''); const [caption,setCaption]=useState(''); const [location,setLocation]=useState(''); const [audience,setAudience]=useState('public'); const [musicUrl,setMusicUrl]=useState(''); const [musicTitle,setMusicTitle]=useState(''); const [err,setErr]=useState(''); const [busy,setBusy]=useState(false); const [uploading,setUploading]=useState('');
+  const mediaInput=useRef(null); const musicInput=useRef(null);
+  async function upload(file,kind){if(!file)return;setUploading(kind);setErr('');try{const url=await uploadFromDevice(file);if(kind==='music'){setMusicUrl(url);setMusicTitle(file.name.replace(/\.[^.]+$/,''));}else{setMediaUrl(url);if(file.type.startsWith('video'))setType('reel');}}catch(error){setErr(error?.message||'Upload failed.')}finally{setUploading('');}}
+  async function submit(e){e.preventDefault();if(!mediaUrl&&!caption.trim()&&!musicUrl)return setErr('Add a photo, video, music, or write something first.');setBusy(true);setErr('');const res=await fetch('/api/posts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type,mediaUrl,caption,location,audience,music:musicUrl?{url:musicUrl,title:musicTitle||'Original audio'}:null})});const d=await res.json();setBusy(false);if(!res.ok)return setErr(d.error||'Could not publish.');onDone?.(d.post);}
+  const video=type==='reel'||/\.(mp4|webm|mov)(\?|$)/i.test(mediaUrl);
+  return <div className="overlay" onClick={onClose}><section className="modal" onClick={e=>e.stopPropagation()}><div style={{display:'flex',alignItems:'center',justifyContent:'space-between',borderBottom:'1px solid rgba(151,174,206,.14)',paddingBottom:11,margin:'-2px 0 12px'}}><button onClick={onClose} style={{border:0,background:'none',color:'#fff',padding:3}} aria-label="Close"><Icon name="x"/></button><h2 style={{margin:0}}>Create post</h2><button onClick={submit} type="button" style={{border:0,background:'none',color:'#8e7bff',fontWeight:800,padding:3}} disabled={busy}>{busy?'…':'Next'}</button></div>{err&&<div className="err">{err}</div>}<form onSubmit={submit}>
+   <div className="seg" style={{marginBottom:13}}>{[['post','Post'],['reel','Reel'],['story','Story']].map(([id,label])=><button key={id} type="button" className={type===id?'on':''} onClick={()=>setType(id)}>{label}</button>)}</div>
+   {mediaUrl?<div style={{position:'relative',marginBottom:12}}>{video?<video src={mediaUrl} controls style={{width:'100%',maxHeight:285,borderRadius:13,background:'#000'}}/>:<img src={mediaUrl} alt="Selected media" style={{width:'100%',maxHeight:285,objectFit:'cover',borderRadius:13,display:'block'}}/>}<button type="button" onClick={()=>setMediaUrl('')} style={{position:'absolute',right:8,top:8,border:0,borderRadius:50,width:29,height:29,background:'rgba(0,0,0,.65)',color:'#fff',display:'grid',placeItems:'center'}}><Icon name="x" size={16}/></button></div>:<button type="button" className="media-placeholder" onClick={()=>mediaInput.current?.click()}><Icon name="image" size={32}/><span>{uploading==='media'?'Uploading…':'Choose from gallery'}</span></button>}
+   <textarea id="viro-post-text" rows="3" value={caption} onChange={e=>setCaption(e.target.value)} placeholder="What’s on your mind?" style={{border:0,background:'transparent',padding:'8px 2px',boxShadow:'none',marginBottom:3}} />
+   <div className="create-tools"><button type="button" onClick={()=>mediaInput.current?.click()}><Icon name="image"/><span>Gallery</span></button><button type="button" onClick={()=>mediaInput.current?.click()}><Icon name="camera"/><span>Camera</span></button><button type="button" onClick={()=>document.querySelector('#viro-post-text')?.focus()}><b>Aa</b><span>Text</span></button><button type="button" onClick={()=>document.querySelector('#viro-location')?.focus()}><Icon name="pin"/><span>Location</span></button><button type="button" onClick={()=>musicInput.current?.click()}><b>♫</b><span>Music</span></button></div>
+   <input ref={mediaInput} type="file" hidden accept="image/*,video/*" onChange={e=>upload(e.target.files?.[0],'media')} /><input ref={musicInput} type="file" hidden accept="audio/*" onChange={e=>upload(e.target.files?.[0],'music')} />
+   <div className="create-details"><div className="field"><label>Location</label><input id="viro-location" value={location} onChange={e=>setLocation(e.target.value)} placeholder="Add a location"/></div><div className="field"><label>Audience</label><select value={audience} onChange={e=>setAudience(e.target.value)}><option value="public">Public</option><option value="friends">Friends</option><option value="onlyme">Only me</option></select></div></div>
+   {musicUrl&&<div className="musicbox"><div><b>{musicTitle||'Original audio'}</b><span>Uploaded to VIRO Music</span></div><audio controls src={musicUrl}/><button type="button" onClick={()=>{setMusicUrl('');setMusicTitle('')}} className="remove-music">Remove music</button></div>}
+   <button className="btn" style={{width:'100%',marginTop:3}} disabled={busy||Boolean(uploading)}>{busy?'Publishing…':type==='reel'?'Share reel':type==='story'?'Share story':'Post'}</button>
+ </form></section></div>;
 }

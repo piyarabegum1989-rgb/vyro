@@ -11,6 +11,12 @@ export async function GET(req, { params }) {
   const peerId = conversation.members.find(member => member !== session.user.id);
   const peer = users.find(user => user.id === peerId);
   const messages = allMessages.filter(message => message.convoId === conversation.id).sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+  // Opening a conversation marks only the recipient's incoming messages as seen.
+  let changed = false;
+  for (const message of messages) {
+    if (message.senderId !== session.user.id && !message.readAt) { message.readAt = new Date().toISOString(); changed = true; }
+  }
+  if (changed) await save('messages', allMessages);
   return NextResponse.json({ peer: publicUser(peer), messages, blocked: await blockedEither(session.user.id, peerId) });
 }
 
@@ -22,9 +28,11 @@ export async function POST(req, { params }) {
   if (!conversation || !conversation.members.includes(session.user.id)) return NextResponse.json({ error: 'Not found' }, { status: 404 });
   const peerId = conversation.members.find(member => member !== session.user.id);
   if (await blockedEither(session.user.id, peerId)) return NextResponse.json({ error: 'Message পাঠানো যাবে না (blocked)' }, { status: 403 });
-  const { text } = await req.json();
-  if (!text || !String(text).trim()) return NextResponse.json({ error: 'মেসেজ লেখো' }, { status: 400 });
-  const message = { id: uid('m'), convoId: conversation.id, senderId: session.user.id, text: String(text).slice(0, 1000), createdAt: new Date().toISOString() };
+  const { text, mediaUrl } = await req.json();
+  const safeText = String(text || '').trim().slice(0, 1000);
+  const safeMedia = String(mediaUrl || '').slice(0, 1000);
+  if (!safeText && !safeMedia) return NextResponse.json({ error: 'Write a message or add media.' }, { status: 400 });
+  const message = { id: uid('m'), convoId: conversation.id, senderId: session.user.id, text: safeText, mediaUrl: safeMedia || null, createdAt: new Date().toISOString() };
   const messages = await table('messages');
   messages.push(message);
   conversation.updatedAt = new Date().toISOString();

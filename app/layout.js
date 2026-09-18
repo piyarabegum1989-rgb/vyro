@@ -1,21 +1,14 @@
 import './globals.css';
+import PwaRegister from '@/components/PwaRegister';
 
 export const metadata = {
-  title: 'VYRO — Connect. Create. Share.',
-  description: 'VYRO — বাংলাদেশের নিজস্ব social app. Photo & video posts, reels, messaging, explore আর privacy-first profile.',
+  title: 'VIRO — Connect. Share. Be Real.',
+  description: 'VIRO is a mobile-first social app for sharing photos, videos, reels, music and messages.',
   manifest: '/manifest.webmanifest',
 };
 
-export const viewport = { themeColor: '#7c3aed' };
+export const viewport = { themeColor: '#050a12' };
 
 export default function RootLayout({ children }) {
-  return (
-    <html lang="bn">
-      <head>
-        <link rel="icon" href="/icon.svg" />
-        <link rel="apple-touch-icon" href="/icon.svg" />
-      </head>
-      <body>{children}</body>
-    </html>
-  );
+  return <html lang="en"><head><link rel="icon" href="/viro-v-mark.png" /><link rel="apple-touch-icon" href="/viro-v-mark.png" /></head><body><PwaRegister />{children}</body></html>;
 }

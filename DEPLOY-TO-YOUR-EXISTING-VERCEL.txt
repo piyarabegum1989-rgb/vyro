@@ -1,0 +1,67 @@
+VIRO MOBILE — REAL APP UPDATE
+==============================
+
+THIS UPDATE
+-----------
+This replaces the old desktop/static VYRO screen with the VIRO mobile app:
+animated Splash, Feed/Stories, Explore, Profile, Messages, Create
+Post/Reel/Story, Notifications, Profile Menu, Community drawer, Settings and
+owner-only Admin. It is real Next.js source for your existing GitHub/Vercel
+project, not a standalone HTML demo.
+
+UPLOAD TO THE EXISTING GITHUB REPO
+----------------------------------
+1. Extract this ZIP.
+2. Open github.com/piyarabegum1989-rgb/vyro
+3. Upload the CONTENTS of this folder to the ROOT of that same repository:
+   app, components, lib, public, package.json, package-lock.json, etc.
+4. Replace matching files and commit directly to main.
+5. The Vercel project already connected to this repository automatically
+   creates the deployment. Do NOT create another Vercel project.
+
+REQUIRED VERCEL ENVIRONMENT VARIABLES
+-------------------------------------
+Open the existing Vercel project -> Settings -> Environment Variables.
+
+DATABASE_URL
+  Existing Neon pooled PostgreSQL connection string. It permanently stores
+  users, sessions, posts, reactions, messages and profile metadata.
+
+ADMIN_EMAIL
+  Your personal email. Create/login to VIRO with EXACTLY this email. Only
+  that account sees Admin Console. It is enforced in server API routes, so it
+  cannot be revealed by CSS/client-side changes to normal users.
+
+BLOB_READ_WRITE_TOKEN
+  Vercel -> Storage -> create/connect ONE Blob store to this SAME project.
+  Vercel normally adds this variable automatically. It provides durable device
+  gallery uploads for profile/cover pictures, post/reel images/videos,
+  message media, and original music. The new uploader sends files directly to
+  Blob with an authenticated short-lived token and supports files up to 100MB.
+
+Save all variables for Production, Preview and Development, then Redeploy.
+
+WHAT USERS WILL SEE
+-------------------
+- Animated VIRO V-logo splash screen first.
+- Blank email/password login; no demo credentials are prefilled or supplied.
+- Existing users sign in; new people create their own account.
+- The old /vyro-facebook.html URL redirects to the VIRO mobile app.
+- On Profile -> Edit profile, select profile photo and cover photo from the
+  device gallery. These become shared/persistent once Blob is connected.
+- Messages are persistent direct chats with text, device gallery media,
+  conversation list, last message/time, unread counts and seen status.
+
+CHECK AFTER DEPLOYMENT
+----------------------
+[ ] Create your own account with the same email as ADMIN_EMAIL.
+[ ] Confirm only you see Admin Console in the profile menu.
+[ ] Test an ordinary account: no Admin option must appear.
+[ ] Test profile photo + cover photo, a photo/video post, a reel and music.
+[ ] Test direct messages and image/video attachment across two accounts.
+[ ] If an old static VIRO/PWA was installed, hard refresh once or remove and
+    reinstall the old home-screen shortcut so its service worker updates.
+
+KEEP SECRET
+-----------
+Never upload .env.local, DATABASE_URL or BLOB_READ_WRITE_TOKEN to GitHub.

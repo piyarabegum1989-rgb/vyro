@@ -1,90 +1,57 @@
-# VYRO — full-stack social app
+# VIRO — mobile social app
 
-A deployable **Next.js + Neon Postgres + Vercel** social application. This is source code, not a single HTML demo.
+A mobile-first **Next.js + Neon Postgres + Vercel Blob** social app. It is a real application source package, not a browser-only HTML mock-up.
 
-## Included now
+## VIRO mobile screens included
 
-- Account creation, login, secure httpOnly session cookie and logout
-- Feed: image/video URL posts, Reels, delete own post, per-post audience
-- Original music posts: attach an MP3/M4A/WAV audio URL or upload your own audio through Vercel Blob
-- Likes, comments and in-app notifications
-- Profiles, following, private profiles and follow requests
-- Direct messages
-- Explore search and trending hashtags
-- Privacy tools: block account, change password, sign out other sessions
-- Clean VYRO login/signup pages with Google, Facebook and phone sign-in options
-- Owner-only Admin Console (member/post moderation; set `ADMIN_EMAIL` in Vercel)
-- Bangla/English UI and demo accounts
-- Neon-backed production persistence — posts, users, messages and all app state remain after Vercel deployments
-- Optional Vercel Blob file upload (you can also use an image/video URL without it)
+- Animated VIRO splash screen using the supplied V logo
+- Home feed with Stories, photo/video posts, reactions, comments, save and share controls
+- Explore search, categories and photo/reel grid
+- Profile with persistent profile photo and cover-photo upload controls
+- Reels
+- Instagram-style direct-message inbox and conversation screen, including image/video messages, unread counts and seen status
+- Full-screen Post / Reel / Story composer, photo/video gallery picker, location, privacy and original-music attachment
+- Notifications with All, Likes, Comments and Follows tabs
+- Profile drawer: Profile, Messages, Community, Settings & privacy, Logout
+- Community drawer keeps Marketplace (BDT), Circles, Groups and Events discoverable
+- Owner-only Admin Console: only the server-side `ADMIN_EMAIL` account receives the Admin menu and routes
 
-> **Database model:** VYRO stores its social collections in a Neon PostgreSQL `vyro_collections` JSONB table. It automatically creates that table and inserts demo data only on the first connection. This keeps the API flexible while data is permanently stored in Neon instead of Vercel's temporary filesystem.
+## Production services required
 
-## 1. Run locally
+1. **Neon Postgres** keeps accounts, posts, messages, reactions and profile metadata persistent across deployments.
+2. **Vercel Blob** stores phone/computer gallery uploads — profile image, cover image, post image/video, message media and music.
+
+Email/password authentication works immediately. Passwords are salted and hashed with Node `scrypt`; browser sessions use httpOnly cookies. The Google, Facebook and phone buttons are visual placeholders until their respective OAuth/SMS credentials are connected.
+
+## Deploy into the existing GitHub + Vercel project
+
+Do **not** create another Vercel project.
+
+1. Upload/replace this source in the existing `piyarabegum1989-rgb/vyro` GitHub repository and commit to `main`.
+2. In the already-connected Vercel project, open **Settings → Environment Variables** and add:
+
+   ```text
+   DATABASE_URL=your Neon pooled PostgreSQL connection string
+   ADMIN_EMAIL=the email address of your own VIRO account
+   ```
+
+3. In **Vercel → Storage**, create or connect a **Blob** store to this existing project. Vercel provides `BLOB_READ_WRITE_TOKEN`; do not type or expose it in browser code.
+4. Redeploy. First create/log in to the account that uses `ADMIN_EMAIL`; only this account gets the Admin Console link.
+
+No demo email or demo password is supplied or prefilled in the VIRO login UI.
+
+## Local development
 
 ```bash
 npm install
 cp .env.example .env.local
-# Put your Neon connection string in .env.local (or leave it blank for local demo-only JSON storage)
 npm run dev
 ```
 
-Open http://localhost:3000.
+Use `npm run build` before deployment.
 
-### Demo login
+## Security and rollout notes
 
-| Email | Password |
-|---|---|
-| `demo@vyro.app` | `password123` |
-| `arif@vyro.app` | `password123` |
-| `nusrat@vyro.app` | `password123` |
-| `tanvir@vyro.app` | `password123` |
-
-## 2. Put it on GitHub
-
-Do **not** upload `.env.local`, `.env`, `node_modules`, `.next` or the `data/*.json` files. The included `.gitignore` handles this.
-
-```bash
-git init
-git add .
-git commit -m "Create VYRO full-stack app"
-git branch -M main
-git remote add origin https://github.com/YOUR-USERNAME/vyro.git
-git push -u origin main
-```
-
-## 3. Deploy to Vercel + connect Neon
-
-1. Create a free Neon project and copy the **pooled** PostgreSQL connection string from **Connection Details**.
-2. Go to Vercel → **Add New → Project** → import the `vyro` GitHub repository.
-3. Before deploying, add this under **Project → Settings → Environment Variables**:
-
-   ```text
-   DATABASE_URL = your Neon postgres connection string
-   ADMIN_EMAIL = the email address you will use for your owner/admin VYRO account
-   ```
-
-   Select **Production**, **Preview**, and **Development**. First sign up to VYRO with the same `ADMIN_EMAIL`; after redeploying, that account gets the Admin Console.
-4. Click **Deploy**. On the first visit, VYRO automatically creates its table and seeds the demo accounts.
-5. For actual device photo/video uploading: Vercel → **Storage** → create a **Blob** store → connect it to this project. Vercel adds `BLOB_READ_WRITE_TOKEN` automatically. Until then, posting an image/video URL works normally.
-
-Every push to the GitHub `main` branch triggers a fresh Vercel deployment. The Neon data remains intact.
-
-## Social sign-in options
-
-The clean login and create-account screens include **Google**, **Facebook**, and **phone number** buttons. Email/password works immediately. To make the three provider buttons complete a real login, add their provider credentials and SMS configuration first—Google requires an OAuth Client ID/Secret, Facebook requires a Meta App ID/Secret, and phone verification needs an SMS service. The UI deliberately does not pretend these services work without those secure credentials.
-
-## Security notes
-
-- Never commit or share `DATABASE_URL` / `BLOB_READ_WRITE_TOKEN`.
-- Passwords are hashed using Node `scrypt` and salted before storage.
-- Session cookies are `httpOnly`, `sameSite=lax`, and `secure` in production.
-- For a large public launch, the next upgrade should be dedicated relational tables, rate limiting, email verification and a managed auth provider.
-
-## Validate before deploying
-
-```bash
-npm run build
-```
-
-The project currently builds successfully with Next.js 14.2.35.
+- Never commit `.env.local`, `DATABASE_URL` or `BLOB_READ_WRITE_TOKEN`.
+- File upload requires Vercel Blob in production. The API returns a clear error if the store is not connected instead of pretending an upload succeeded.
+- The initial Neon adapter preserves the existing JSON collection model in one durable Postgres table. For a very large public launch, migrate to dedicated relational tables, add email verification, rate limiting and a managed realtime provider.
